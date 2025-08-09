@@ -6,17 +6,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "inject": "bun build src/extension/inject.ts --minify --target=browser --format iife --outdir ./src/extension/",
-    "content": "bun build src/extension/content.ts --minify --target=browser --outdir ./src/extension/",
-    "post-build": "bun run ./release-scripts/post-build.ts",
-    "build": "bun run inject && bun run content && vue-tsc --noEmit && vite build && bun run post-build",
-    "rebuild": "bun run build && bun run ./release-scripts/create-release.ts rebuild",
+    "inject": "esbuild src/extension/inject.ts --bundle --minify --target=es2020 --format=iife --outfile=src/extension/inject.js",
+    "content": "esbuild src/extension/content.ts --bundle --minify --target=es2020 --format=iife --outfile=src/extension/content.js",
+    "post-build": "node ./release-scripts/post-build.ts",
+    "build": "npm run inject && npm run content && vue-tsc --noEmit && vite build && npm run post-build",
+    "rebuild": "npm run build && node ./release-scripts/create-release.ts rebuild",
     "preview": "vite preview",
-    "release": "bun run ./release-scripts/version-release.ts",
+    "release": "node ./release-scripts/version-release.ts",
     "postversion": "git push",
-    "pub": "bun run build && bun run release && bun run ./release-scripts/create-release.ts",
-    "only-pub": "bun run build && bun run ./release-scripts/create-release.ts",
-    "test": "bun test"
+    "pub": "npm run build && npm run release && node ./release-scripts/create-release.ts",
+    "only-pub": "npm run build && node ./release-scripts/create-release.ts",
+    "test": "echo 'No bun tests. Use npm test framework.'"
   },
   "dependencies": {
     "@ionic/vue": "8.4.2",

@@ -6,9 +6,17 @@
           <ion-avatar
             @click="openTab('https://clear-wallet.flashsoft.eu/docs/')"
             class="link-docs"
-            style="margin: 0.3rem; width: 1.6rem; height: 1.6rem; display: inline-flex"
+            style="
+              margin: 0.3rem;
+              width: 1.6rem;
+              height: 1.6rem;
+              display: inline-flex;
+            "
           >
-            <img alt="clw" :src="getUrl('assets/extension-icon/wallet_32.png')" />
+            <img
+              alt="clw"
+              :src="getUrl('assets/extension-icon/wallet_32.png')"
+            />
           </ion-avatar>
           <span
             @click="openTab('https://clear-wallet.flashsoft.eu/docs/')"
@@ -23,7 +31,9 @@
           <span
             v-if="version"
             @click="
-              openTab('https://clear-wallet.flashsoft.eu/docs/automated-changelog/')
+              openTab(
+                'https://clear-wallet.flashsoft.eu/docs/automated-changelog/'
+              )
             "
             style="
               position: absolute;
@@ -72,11 +82,15 @@
             )
           "
         >
-          <p style="font-size: 0.7rem; color: #aca3bb">{{ selectedAccount?.address }}</p>
+          <p style="font-size: 0.7rem; color: #aca3bb">
+            {{ selectedAccount?.address }}
+          </p>
           <ion-icon style="margin-left: 0.5rem" :icon="copyOutline"></ion-icon>
         </ion-item>
         <ion-item
-          v-if="!loading && selectedNetwork?.explorer && selectedAccount?.address"
+          v-if="
+            !loading && selectedNetwork?.explorer && selectedAccount?.address
+          "
         >
           <ion-button
             @click="
@@ -158,8 +172,8 @@
         <p v-else>
           RPC performance: {{ Math.trunc(rpcPerformance.performance) }}ms -
           <span style="color: red"
-            >RPC connection is slow or dead please check internet or replace your RPC
-            URL</span
+            >RPC connection is slow or dead please check internet or replace
+            your RPC URL</span
           >
         </p>
       </ion-item>
@@ -167,7 +181,9 @@
         <p class="blink-loading">Loading RPC pefromance...</p>
       </ion-item>
 
-      <ion-item style="margin-top: 0.3rem; margin-bottom: 0.3rem; text-align: center">
+      <ion-item
+        style="margin-top: 0.3rem; margin-bottom: 0.3rem; text-align: center"
+      >
         <ion-button
           @click="goToFarcasterActions"
           expand="block"
@@ -176,7 +192,9 @@
         >
       </ion-item>
 
-      <ion-item style="margin-top: 0.3rem; margin-bottom: 0.3rem; text-align: center">
+      <ion-item
+        style="margin-top: 0.3rem; margin-bottom: 0.3rem; text-align: center"
+      >
         <ion-button
           @click="goToPersonalSign"
           expand="block"
@@ -185,20 +203,42 @@
         >
       </ion-item>
       <ion-item style="margin-top: 0.3rem">
-        <div class="display: flex; flex-direction: column">
-          <img
-            alt="stealthex"
-            @click="openTab('https://stealthex.io')"
-            id="exchange-btn"
-            :src="getUrl('assets/exchange-btn-min.svg')"
-            class="exchange-btn"
-            style=""
-          />
-          <p style="font-size: 0.75rem; opacity: 0.8; padding: 0.2rem">
-            This button does not contain any referral to maximize privacy.
-          </p>
+        <div style="width: 100%">
+          <h3 style="color: #F1C40F; margin-bottom: 0.5rem;">Recent Transactions</h3>
+          <ion-list v-if="recentTxs.length > 0">
+            <ion-item v-for="tx in recentTxs" :key="tx.txHash" style="font-size: 0.85rem;">
+              <ion-label>
+                <div style="display: flex; flex-direction: column;">
+                  <span>
+                    <b>Hash:</b>
+                    <a :href="tx.txUrl" target="_blank" style="color: #6E4B9E; text-decoration: underline;">{{ tx.txHash.slice(0, 10) }}...{{ tx.txHash.slice(-6) }}</a>
+                  </span>
+                  <span><b>Date:</b> {{ new Date(tx.date).toLocaleString() }}</span>
+                  <span v-if="tx.status"><b>Status:</b> {{ tx.status }}</span>
+                </div>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+          <div v-else style="color: #aca3bb; font-size: 0.9rem;">No recent transactions found.</div>
         </div>
       </ion-item>
+import { getHistory } from '@/utils/platform';
+import { computed } from 'vue';
+const recentTxs = ref([]);
+
+onIonViewWillEnter(async () => {
+  loadData();
+  const history = await getHistory();
+  // Filter for selected account and network, sort by date desc, take 5
+  if (selectedAccount.value && selectedNetwork.value) {
+    recentTxs.value = history
+      .filter(tx => tx.chainId === selectedNetwork.value.chainId && tx.txUrl && tx.txHash && selectedAccount.value.address && tx.txUrl.includes(selectedAccount.value.address))
+      .sort((a, b) => b.date - a.date)
+      .slice(0, 5);
+  } else {
+    recentTxs.value = history.sort((a, b) => b.date - a.date).slice(0, 5);
+  }
+});
       <ion-loading
         :is-open="loading"
         cssClass="my-custom-class"
@@ -216,7 +256,10 @@
       ></ion-toast>
     </ion-content>
     <SelectedAccountModal :refs="() => getRefs()" :key="`${loading}-status`" />
-    <ion-modal :is-open="networksModal" @ionModalDidPresent="networkModalPresented">
+    <ion-modal
+      :is-open="networksModal"
+      @ionModalDidPresent="networkModalPresented"
+    >
       <ion-header>
         <ion-toolbar>
           <ion-buttons slot="start">
@@ -363,8 +406,8 @@ const accounts = ref([]) as Ref<Account[]>;
 const networks = ref({}) as Ref<Networks>;
 const accountsModal = ref(false) as Ref<boolean>;
 const networksModal = ref(false) as Ref<boolean>;
-const selectedAccount = (ref(null) as unknown) as Ref<Account>;
-const selectedNetwork = (ref(null) as unknown) as Ref<Network>;
+const selectedAccount = ref(null) as unknown as Ref<Account>;
+const selectedNetwork = ref(null) as unknown as Ref<Network>;
 const toastState = ref(false);
 const settings = ref({}) as Ref<Awaited<ReturnType<typeof getSettings>>>;
 const rpcPerformance = ref({ performance: 0 }) as Ref<{ performance: number }>;
@@ -395,17 +438,21 @@ const loadData = () => {
   const pSelectedAccount = getSelectedAccount();
   const pSelectedNetwork = getSelectedNetwork();
   const pSettings = getSettings();
-  Promise.all([pAccounts, pNetworks, pSelectedAccount, pSelectedNetwork, pSettings]).then(
-    (res) => {
-      accounts.value = res[0];
-      networks.value = res[1];
-      filtredNetworks.value = res[1];
-      selectedAccount.value = res[2];
-      selectedNetwork.value = res[3];
-      settings.value = res[4];
-      loading.value = false;
-    }
-  );
+  Promise.all([
+    pAccounts,
+    pNetworks,
+    pSelectedAccount,
+    pSelectedNetwork,
+    pSettings,
+  ]).then((res) => {
+    accounts.value = res[0];
+    networks.value = res[1];
+    filtredNetworks.value = res[1];
+    selectedAccount.value = res[2];
+    selectedNetwork.value = res[3];
+    settings.value = res[4];
+    loading.value = false;
+  });
 
   loadRPCPerformance();
 };
@@ -450,16 +497,23 @@ const changeSelectedNetwork = async (chainId: number) => {
 const searchNetwork = (e: any) => {
   const text = e.target.value;
   if (text) {
-    const filtred = Object.keys(networks.value).reduce((acc: Networks, key: string) => {
-      if (
-        networks.value[Number(key)].name.toLowerCase().includes(text.toLowerCase()) ||
-        networks.value[Number(key)].rpc.toLowerCase().includes(text.toLowerCase()) ||
-        networks.value[Number(key)].chainId.toString().includes(text)
-      ) {
-        acc[Number(key)] = networks.value[Number(key)];
-      }
-      return acc;
-    }, {} as Networks);
+    const filtred = Object.keys(networks.value).reduce(
+      (acc: Networks, key: string) => {
+        if (
+          networks.value[Number(key)].name
+            .toLowerCase()
+            .includes(text.toLowerCase()) ||
+          networks.value[Number(key)].rpc
+            .toLowerCase()
+            .includes(text.toLowerCase()) ||
+          networks.value[Number(key)].chainId.toString().includes(text)
+        ) {
+          acc[Number(key)] = networks.value[Number(key)];
+        }
+        return acc;
+      },
+      {} as Networks
+    );
     filtredNetworks.value = filtred;
   } else {
     filtredNetworks.value = networks.value;
